@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gift Exchange</title>
+        <style>
+            /* --- 宇宙空間とネビュラロマンスの世界観 --- */
+            body {
+                margin: 0;
+                background: radial-gradient(
+                    circle at center,
+                    #1a0b2e 0%,
+                    #000000 100%
+                );
+                color: #fff;
+                font-family: "Helvetica Neue", Arial, sans-serif;
+                overflow: hidden;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 星空の背景 */
+            .stars {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                background-image:
+                    radial-gradient(
+                        white,
+                        rgba(255, 255, 255, 0.2) 2px,
+                        transparent 3px
+                    ),
+                    radial-gradient(
+                        white,
+                        rgba(255, 255, 255, 0.15) 1px,
+                        transparent 2px
+                    ),
+                    radial-gradient(
+                        white,
+                        rgba(255, 255, 255, 0.1) 2px,
+                        transparent 3px
+                    );
+                background-size:
+                    550px 550px,
+                    350px 350px,
+                    250px 250px;
+                background-position:
+                    0 0,
+                    40px 60px,
+                    130px 270px;
+                animation: starsMove 100s linear infinite;
+                opacity: 0.5;
+            }
+
+            @keyframes starsMove {
+                from {
+                    transform: translateY(0);
+                }
+                to {
+                    transform: translateY(-1000px);
+                }
+            }
+
+            /* --- UIエリア (入力画面) --- */
+            #setup-area {
+                z-index: 10;
+                text-align: center;
+                background: rgba(0, 0, 0, 0.6);
+                padding: 40px;
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            }
+
+            textarea {
+                width: 300px;
+                height: 100px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid #ff00cc;
+                color: #fff;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 16px;
+                outline: none;
+            }
+
+            button {
+                margin-top: 20px;
+                padding: 15px 40px;
+                font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 2px;
+                background: rgba(0, 0, 0, 0.5);
+                color: #00ffff;
+                border: 2px solid #00ffff;
+                border-radius: 50px;
+                cursor: pointer;
+                text-transform: uppercase;
+                box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+                transition: all 0.3s;
+            }
+
+            button:hover {
+                background: #00ffff;
+                color: #000;
+                box-shadow: 0 0 20px #00ffff;
+            }
+
+            button:disabled {
+                border-color: #555;
+                color: #555;
+                box-shadow: none;
+                cursor: not-allowed;
+                background: transparent;
+            }
+
+            /* --- メイン演出エリア --- */
+            #stage-area {
+                display: none;
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+                perspective: 1000px;
+                overflow: hidden; /* はみ出し防止 */
+            }
+
+            /* ループする円環 */
+            .loop-ring {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 500px;
+                height: 500px;
+                transform: translate(-50%, -50%) rotateX(60deg);
+                border: 2px solid rgba(255, 0, 204, 0.3);
+                border-radius: 50%;
+                box-shadow: 0 0 20px rgba(255, 0, 204, 0.2);
+                transform-style: preserve-3d;
+                transition: opacity 1s ease; /* フェードアウト用 */
+            }
+
+            /* 中央のテキスト */
+            .center-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 40px;
+                font-weight: bold;
+                text-shadow:
+                    0 0 10px #fff,
+                    0 0 20px #ff00cc;
+                z-index: 20;
+                opacity: 0.8;
+                letter-spacing: 4px;
+                pointer-events: none;
+            }
+
+            /* 参加者カード（カルタ） */
+            .card {
+                position: absolute;
+                width: 80px;
+                height: 120px;
+                background: rgba(20, 20, 40, 0.9);
+                border: 1px solid #00ffff;
+                color: #00ffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 0 0 5px #00ffff;
+                border-radius: 4px;
+                top: 50%;
+                left: 50%;
+                transform-origin: center center;
+                transition: all 0.5s;
+            }
+
+            /* アクティブなカード */
+            .card.active {
+                background: #fff;
+                color: #000;
+                box-shadow:
+                    0 0 20px #fff,
+                    0 0 40px #ff00cc;
+                border-color: #ff00cc;
+                z-index: 100;
+                transform: translate(-50%, -50%) scale(1.5) !important;
+            }
+
+            /* 光の粒子 */
+            .photon {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: #fff;
+                border-radius: 50%;
+                box-shadow:
+                    0 0 10px #fff,
+                    0 0 20px #fff;
+                top: 50%;
+                left: 50%;
+                display: none;
+            }
+
+            /* 途中経過オーバーレイ */
+            #result-overlay {
+                position: absolute;
+                top: 15%;
+                width: 100%;
+                text-align: center;
+                z-index: 200;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.5s;
+            }
+
+            #result-text {
+                font-size: 40px;
+                font-weight: bold;
+                text-shadow: 0 0 10px #00ffff;
+                margin-bottom: 10px;
+            }
+
+            #sub-text {
+                font-size: 16px;
+                color: #ff00cc;
+                letter-spacing: 3px;
+                text-transform: uppercase;
+            }
+
+            /* コントロールボタンエリア */
+            #controls {
+                position: absolute;
+                bottom: 50px;
+                width: 100%;
+                text-align: center;
+                z-index: 50;
+            }
+
+            /* --- 最終結果リスト画面 --- */
+            #final-result-area {
+                display: none; /* 最初は非表示 */
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 300;
+                background: rgba(0, 0, 0, 0.85); /* 少し暗くする */
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                overflow-y: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            .result-title {
+                font-size: 32px;
+                color: #fff;
+                text-shadow: 0 0 10px #ff00cc;
+                margin-bottom: 30px;
+                letter-spacing: 5px;
+                border-bottom: 2px solid #ff00cc;
+                padding-bottom: 10px;
+                opacity: 0;
+                animation: fadeIn 1s forwards;
+            }
+
+            .result-list {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                width: 100%;
+                max-width: 600px;
+            }
+
+            .result-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: linear-gradient(
+                    90deg,
+                    rgba(0, 255, 255, 0.1),
+                    transparent
+                );
+                padding: 15px 20px;
+                border-left: 4px solid #00ffff;
+                color: #fff;
+                font-size: 20px;
+                opacity: 0;
+                transform: translateX(-20px);
+                /* animationはJSで遅延付与 */
+            }
+
+            .arrow-icon {
+                color: #ff00cc;
+                font-size: 24px;
+                margin: 0 20px;
+                text-shadow: 0 0 5px #ff00cc;
+            }
+
+            .reload-btn {
+                margin-top: 40px;
+                opacity: 0;
+                animation: fadeIn 1s 1s forwards; /* 少し遅れて表示 */
+            }
+
+            @keyframes slideIn {
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            @keyframes fadeIn {
+                to {
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="stars"></div>
+
+        <div id="setup-area">
+            <h1 style="color: #00ffff; text-shadow: 0 0 10px #00ffff">
+                MEGU-LOOP<br /><span style="font-size: 16px; color: #fff"
+                    >GIFT EXCHANGE SYSTEM</span
+                >
+            </h1>
+            <p>参加者の名前を入力してください（改行区切り）</p>
+            <textarea id="names-input"></textarea>
+            <br />
+            <button onclick="initSystem()">SYSTEM START</button>
+        </div>
+
+        <div id="stage-area">
+            <div class="center-text">巡ループ</div>
+            <div class="loop-ring" id="ring"></div>
+            <div class="photon" id="photon"></div>
+
+            <div id="result-overlay">
+                <div id="sub-text">GIFT FOR YOU</div>
+                <div id="result-text"></div>
+            </div>
+
+            <div id="controls">
+                <button id="next-btn" onclick="startLottery()">
+                    SPIN THE LOOP
+                </button>
+            </div>
+        </div>
+
+        <div id="final-result-area">
+            <div class="result-title">TOTAL RESULTS</div>
+            <div class="result-list" id="result-list-container"></div>
+            <button class="reload-btn" onclick="location.reload()">
+                REPLAY
+            </button>
+        </div>
+
+        <script>
+            // データ管理
+            let participants = [];
+            let pairs = [];
+            let currentIndex = 0;
+            let cardElements = [];
+
+            // URLパラメータから初期値を読み込む
+            function loadInitialNames() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const namesParam = urlParams.get("names");
+                const textarea = document.getElementById("names-input");
+
+                if (namesParam) {
+                    // URLパラメータがある場合はそれを使用
+                    textarea.value = decodeURIComponent(namesParam).replace(
+                        /,/g,
+                        "\n",
+                    );
+                } else {
+                    // ない場合はデフォルト値を設定
+                    textarea.value =
+                        "あ〜ちゃん\nかしゆか\nのっち\nMIKIKO先生\n中田ヤスタカ";
+                }
+            }
+
+            // ページ読み込み時に初期値を設定
+            window.addEventListener("DOMContentLoaded", loadInitialNames);
+
+            // 完全順列（自分に当たらない）ロジック
+            function getSecretSantaPairs(names) {
+                let givers = [...names];
+                let receivers = [...names];
+                let isValid = false;
+
+                while (!isValid) {
+                    receivers.sort(() => Math.random() - 0.5);
+                    isValid = true;
+                    for (let i = 0; i < givers.length; i++) {
+                        if (givers[i] === receivers[i]) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                return givers.map((giver, i) => ({
+                    from: giver,
+                    to: receivers[i],
+                }));
+            }
+
+            // 初期化
+            function initSystem() {
+                const input = document.getElementById("names-input").value;
+                participants = input.split("\n").filter((n) => n.trim() !== "");
+
+                if (participants.length < 2) {
+                    alert("2名以上入力してください");
+                    return;
+                }
+
+                // URLパラメータに名前を追加
+                const namesParam = participants.join(",");
+                const newUrl = `${window.location.pathname}?names=${encodeURIComponent(namesParam)}`;
+                window.history.pushState({}, "", newUrl);
+
+                pairs = getSecretSantaPairs(participants);
+
+                document.getElementById("setup-area").style.display = "none";
+                document.getElementById("stage-area").style.display = "block";
+
+                createCards();
+            }
+
+            // カードを円環状に配置
+            function createCards() {
+                const ring = document.getElementById("ring");
+                ring.innerHTML = "";
+                cardElements = [];
+
+                const radius = 250;
+                const angleStep = 360 / participants.length;
+
+                participants.forEach((name, index) => {
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.innerText = name;
+
+                    const angle = index * angleStep;
+
+                    card.style.transform = `
+                    translate(-50%, -50%)
+                    rotate(${angle}deg)
+                    translate(${radius}px)
+                    rotate(-${angle}deg)
+                    rotateX(-60deg)
+                `;
+
+                    ring.appendChild(card);
+                    cardElements.push({ element: card, name: name });
+                });
+            }
+
+            // 抽選スタート
+            function startLottery() {
+                // 全て完了していたら結果画面へ
+                if (currentIndex >= pairs.length) {
+                    showFinalResults();
+                    return;
+                }
+
+                const currentPair = pairs[currentIndex];
+                const nextBtn = document.getElementById("next-btn");
+                nextBtn.disabled = true;
+                nextBtn.style.opacity = 0.5;
+
+                document.getElementById("result-overlay").style.opacity = 0;
+                cardElements.forEach((c) =>
+                    c.element.classList.remove("active"),
+                );
+
+                // 1. 渡す人のカードを光らせる
+                const giverIndex = participants.indexOf(currentPair.from);
+                const giverCard = cardElements[giverIndex].element;
+                giverCard.classList.add("active");
+
+                document.getElementById("sub-text").innerText =
+                    `${currentPair.from} さんのプレゼントは...`;
+                document.getElementById("result-text").innerText = "???";
+                document.getElementById("result-overlay").style.opacity = 1;
+
+                // 2. ループ演出開始
+                setTimeout(() => {
+                    spinLoop(currentPair.to);
+                }, 800);
+            }
+
+            // ループ回転アニメーション
+            function spinLoop(targetName) {
+                const ring = document.getElementById("ring");
+                const photon = document.getElementById("photon");
+                const targetIndex = participants.indexOf(targetName);
+
+                const loops = 3 + Math.floor(Math.random() * 3);
+                const angleStep = 360 / participants.length;
+
+                let currentAngle = 0;
+                let targetTotalAngle = loops * 360 + targetIndex * angleStep;
+
+                photon.style.display = "block";
+
+                function animate() {
+                    let remaining = targetTotalAngle - currentAngle;
+
+                    if (remaining < 0.5) {
+                        finishLottery(targetIndex, targetName);
+                        return;
+                    }
+
+                    const step = remaining * 0.05 + 0.5;
+                    currentAngle += step;
+
+                    ring.style.transform = `translate(-50%, -50%) rotateX(60deg) rotate(-${currentAngle}deg)`;
+
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+            }
+
+            function finishLottery(targetIndex, targetName) {
+                const photon = document.getElementById("photon");
+                photon.style.display = "none";
+
+                const targetCard = cardElements[targetIndex].element;
+                targetCard.classList.add("active");
+
+                document.getElementById("result-text").innerText = targetName;
+                document.getElementById("sub-text").innerText =
+                    "Loop Completed";
+
+                currentIndex++;
+                const nextBtn = document.getElementById("next-btn");
+
+                if (currentIndex < pairs.length) {
+                    nextBtn.innerText = "NEXT LOOP";
+                } else {
+                    nextBtn.innerText = "SHOW ALL RESULTS"; // ボタンの文言変更
+                    nextBtn.style.borderColor = "#ff00cc";
+                    nextBtn.style.color = "#ff00cc";
+                    nextBtn.style.boxShadow = "0 0 20px #ff00cc";
+                }
+
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = 1;
+            }
+
+            // --- 最終結果画面表示 ---
+            function showFinalResults() {
+                const stageArea = document.getElementById("stage-area");
+                const finalArea = document.getElementById("final-result-area");
+                const listContainer = document.getElementById(
+                    "result-list-container",
+                );
+
+                // 背景のリングをフェードアウト
+                document.getElementById("ring").style.opacity = 0;
+                document.getElementById("controls").style.display = "none";
+                document.getElementById("result-overlay").style.opacity = 0;
+
+                finalArea.style.display = "flex"; // 表示
+
+                // リスト生成
+                listContainer.innerHTML = "";
+                pairs.forEach((pair, index) => {
+                    const row = document.createElement("div");
+                    row.className = "result-item";
+
+                    // HTML構造
+                    row.innerHTML = `
+                    <span style="font-weight:bold;">${pair.from}</span>
+                    <span class="arrow-icon">➤</span>
+                    <span style="font-weight:bold; color:#ff00cc;">${pair.to}</span>
+                `;
+
+                    // アニメーション遅延（順番に表示）
+                    row.style.animation = `slideIn 0.5s ease forwards ${index * 0.2}s`;
+
+                    listContainer.appendChild(row);
+                });
+            }
+        </script>
+    </body>
+</html>
