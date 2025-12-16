@@ -338,7 +338,6 @@
         </div>
 
         <div id="stage-area">
-            <div class="center-text">巡ループ</div>
             <div class="loop-ring" id="ring"></div>
             <div class="photon" id="photon"></div>
 
@@ -513,6 +512,9 @@
 
                 photon.style.display = "block";
 
+                const baseRadius = 250;
+                const maxRadius = 400; // 最大半径
+
                 function animate() {
                     let remaining = targetTotalAngle - currentAngle;
 
@@ -524,7 +526,38 @@
                     const step = remaining * 0.05 + 0.5;
                     currentAngle += step;
 
+                    // 進捗率を計算（0〜1）
+                    const progress = currentAngle / targetTotalAngle;
+
+                    // 開始時に拡大、終了時に縮小
+                    let radiusMultiplier;
+                    if (progress < 0.3) {
+                        // 最初の30%で拡大
+                        radiusMultiplier = 1 + (progress / 0.3) * 0.6; // 1.0 → 1.6
+                    } else if (progress > 0.7) {
+                        // 最後の30%で縮小
+                        const endProgress = (progress - 0.7) / 0.3;
+                        radiusMultiplier = 1.6 - endProgress * 0.6; // 1.6 → 1.0
+                    } else {
+                        // 中間は最大サイズを維持
+                        radiusMultiplier = 1.6;
+                    }
+
+                    const currentRadius = baseRadius * radiusMultiplier;
+
                     ring.style.transform = `translate(-50%, -50%) rotateX(60deg) rotate(-${currentAngle}deg)`;
+
+                    // 各カードの半径を更新
+                    cardElements.forEach((cardObj, index) => {
+                        const angle = index * angleStep;
+                        cardObj.element.style.transform = `
+                            translate(-50%, -50%)
+                            rotate(${angle}deg)
+                            translate(${currentRadius}px)
+                            rotate(-${angle}deg)
+                            rotateX(-60deg)
+                        `;
+                    });
 
                     requestAnimationFrame(animate);
                 }
