@@ -233,19 +233,9 @@
             }
 
             #sub-text {
-                font-size: 16px;
+                font-size: 24px;
                 color: #ff00cc;
                 letter-spacing: 3px;
-                text-transform: uppercase;
-            }
-
-            /* コントロールボタンエリア */
-            #controls {
-                position: absolute;
-                bottom: 50px;
-                width: 100%;
-                text-align: center;
-                z-index: 50;
             }
 
             /* --- 最終結果リスト画面 --- */
@@ -356,12 +346,6 @@
                 <div id="sub-text">GIFT FOR YOU</div>
                 <div id="result-text"></div>
             </div>
-
-            <div id="controls">
-                <button id="next-btn" onclick="startLottery()">
-                    SPIN THE LOOP
-                </button>
-            </div>
         </div>
 
         <div id="final-result-area">
@@ -445,6 +429,11 @@
                 document.getElementById("stage-area").style.display = "block";
 
                 createCards();
+
+                // 最初のループを開始
+                setTimeout(() => {
+                    startLottery();
+                }, 1000);
             }
 
             // カードを円環状に配置
@@ -485,9 +474,6 @@
                 }
 
                 const currentPair = pairs[currentIndex];
-                const nextBtn = document.getElementById("next-btn");
-                nextBtn.disabled = true;
-                nextBtn.style.opacity = 0.5;
 
                 document.getElementById("result-overlay").style.opacity = 0;
                 cardElements.forEach((c) =>
@@ -499,8 +485,8 @@
                 const giverCard = cardElements[giverIndex].element;
                 giverCard.classList.add("active");
 
-                document.getElementById("sub-text").innerText =
-                    `${currentPair.from} さんのプレゼントは...`;
+                document.getElementById("sub-text").innerHTML =
+                    `<span style="font-size: 48px; font-weight: bold; text-shadow: 0 0 15px #ff00cc;">${currentPair.from}</span><br>さんのプレゼントは...`;
                 document.getElementById("result-text").innerText = "???";
                 document.getElementById("result-overlay").style.opacity = 1;
 
@@ -550,29 +536,18 @@
                 const targetCard = cardElements[targetIndex].element;
                 targetCard.classList.add("active");
 
-                document.getElementById("result-text").innerText = targetName;
-                document.getElementById("sub-text").innerText =
-                    "Loop Completed";
+                const currentPair = pairs[currentIndex];
+                document.getElementById("result-text").innerHTML =
+                    `<span style="font-size: 36px; font-weight: bold;">${currentPair.from}</span> ➤ <span style="font-size: 36px; font-weight: bold; color: #00ffff;">${targetName}</span>`;
+                document.getElementById("sub-text").innerHTML =
+                    `<span style="font-size: 18px;">Loop Completed</span>`;
 
                 currentIndex++;
-                const nextBtn = document.getElementById("next-btn");
 
-                if (currentIndex < pairs.length) {
-                    nextBtn.innerText = "NEXT LOOP";
-                } else {
-                    nextBtn.innerText = "SHOW ALL RESULTS"; // ボタンの文言変更
-                    nextBtn.style.borderColor = "#ff00cc";
-                    nextBtn.style.color = "#ff00cc";
-                    nextBtn.style.boxShadow = "0 0 20px #ff00cc";
-                }
-
-                nextBtn.disabled = false;
-                nextBtn.style.opacity = 1;
-
-                // 2秒後に自動的に次のループを開始
+                // 3秒後に自動的に次のループを開始
                 setTimeout(() => {
                     startLottery();
-                }, 2000);
+                }, 3000);
             }
 
             // --- 最終結果画面表示 ---
@@ -585,7 +560,6 @@
 
                 // 背景のリングをフェードアウト
                 document.getElementById("ring").style.opacity = 0;
-                document.getElementById("controls").style.display = "none";
                 document.getElementById("result-overlay").style.opacity = 0;
 
                 finalArea.style.display = "flex"; // 表示
