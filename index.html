@@ -418,6 +418,9 @@
                     return;
                 }
 
+                // 参加者をシャッフル
+                participants.sort(() => Math.random() - 0.5);
+
                 // URLパラメータに名前を追加
                 const namesParam = participants.join(",");
                 const newUrl = `${window.location.pathname}?names=${encodeURIComponent(namesParam)}`;
