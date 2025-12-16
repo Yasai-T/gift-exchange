@@ -260,9 +260,10 @@
                 background: rgba(0, 0, 0, 0.85); /* 少し暗くする */
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start; /* 上寄せに変更 */
                 overflow-y: auto;
                 padding: 20px;
+                padding-top: 40px; /* 上部に余白を追加 */
                 box-sizing: border-box;
             }
 
@@ -276,6 +277,7 @@
                 padding-bottom: 10px;
                 opacity: 0;
                 animation: fadeIn 1s forwards;
+                flex-shrink: 0; /* タイトルが縮まないように */
             }
 
             .result-list {
@@ -566,6 +568,11 @@
 
                 nextBtn.disabled = false;
                 nextBtn.style.opacity = 1;
+
+                // 2秒後に自動的に次のループを開始
+                setTimeout(() => {
+                    startLottery();
+                }, 2000);
             }
 
             // --- 最終結果画面表示 ---
